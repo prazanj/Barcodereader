@@ -1,0 +1,52 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barcode Scanner</title>
+</head>
+<body>
+    <h1>Barcode Scanner</h1>
+    <button onclick="startCamera()">Start Camera</button>
+    <video id="cameraFeed" autoplay playsinline></video>
+    <div id="barcodeResult">Scanned barcode: <span id="resultText">No barcode detected</span></div>
+
+    <script src="https://unpkg.com/@zxing/library@latest"></script>
+    <script>
+        let currentCamera = 'environment'; 
+        let scanningInProgress = false;
+        const codeReader = new ZXing.BrowserMultiFormatReader();
+
+        async function startCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: currentCamera } });
+                const videoElement = document.getElementById('cameraFeed');
+                videoElement.srcObject = stream;
+                startScanning(); 
+            } catch (error) {
+                console.error('Error accessing camera:', error);
+            }
+        }
+
+        function handleBarcode(decodedText) {
+            document.getElementById('resultText').textContent = decodedText;
+            
+            window.location.href = `https://www.barcodelookup.com/${decodedText}`;
+        }
+
+        function startScanning() {
+            if (!scanningInProgress) {
+                scanningInProgress = true;
+                codeReader.decodeFromVideoDevice(undefined, 'cameraFeed', (result, error) => {
+                    if (result) {
+                        handleBarcode(result.text);
+                    } else {
+                        console.error('Error decoding barcode:', error);
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html>
